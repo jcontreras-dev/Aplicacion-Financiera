@@ -23,13 +23,15 @@ class FinanceApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeProvider);
-    return MaterialApp.router(
-      title: 'Control de Finanzas',
-      debugShowCheckedModeBanner: false,
-      themeMode: themeMode,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      routerConfig: goRouter,
+    return AuthGate(
+      child: MaterialApp.router(
+        title: 'Control de Finanzas',
+        debugShowCheckedModeBanner: false,
+        themeMode: themeMode,
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        routerConfig: goRouter,
+      ),
     );
   }
 }
