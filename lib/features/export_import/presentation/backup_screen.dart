@@ -240,6 +240,26 @@ class BackupScreen extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.md),
             _ActionCard(
+              title: 'Cerrar sesión de Drive',
+              subtitle: 'Desvincula tu cuenta actual para poder usar otra cuenta.',
+              icon: Icons.logout,
+              color: AppColors.textSecondaryLight,
+              isFullWidth: true,
+              onTap: () async {
+                try {
+                  await ExportService.signOutGoogleDrive();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('Sesión de Google Drive cerrada.'),
+                    ));
+                  }
+                } catch(e) {
+                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                }
+              },
+            ),
+            const SizedBox(height: AppSpacing.md),
+            _ActionCard(
               title: 'Restaurar desde Drive',
               subtitle: 'Selecciona una versión anterior para recuperar tus datos.',
               icon: Icons.cloud_download,

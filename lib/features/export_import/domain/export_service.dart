@@ -277,6 +277,13 @@ class ExportService {
     return drive.DriveApi(authenticateClient);
   }
 
+  static Future<void> signOutGoogleDrive() async {
+    final googleSignIn = GoogleSignIn(
+      scopes: [drive.DriveApi.driveAppdataScope, drive.DriveApi.driveFileScope],
+    );
+    await googleSignIn.signOut();
+  }
+
   static Future<void> exportToGoogleDrive() async {
     try {
       await BackupSafetyService.validateLocalDatabase();
