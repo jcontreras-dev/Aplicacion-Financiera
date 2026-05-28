@@ -10,6 +10,8 @@ import 'package:finance_app/core/design_system/app_text_styles.dart';
 import 'package:finance_app/core/design_system/app_card.dart';
 import 'package:finance_app/core/design_system/app_button.dart';
 import 'package:finance_app/core/database/database_helper.dart';
+import 'package:finance_app/core/providers/theme_provider.dart';
+import 'package:finance_app/core/services/biometric_service.dart';
 import 'package:finance_app/features/export_import/domain/export_service.dart';
 import 'package:finance_app/features/transactions/domain/transaction_provider.dart';
 import 'package:finance_app/features/transactions/domain/transaction.dart';
@@ -158,6 +160,11 @@ class BackupScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ─── CONFIGURACIÓN DE LA APP ────────────────────────────────
+            Text('Configuración de la App', style: AppTextStyles.h3),
+            const SizedBox(height: AppSpacing.sm),
+            const _AppSettingsCard(),
+            const SizedBox(height: AppSpacing.xl),
             Text('Reportes y Exportación', style: AppTextStyles.h3),
             const SizedBox(height: AppSpacing.sm),
             _ActionCard(
@@ -370,6 +377,124 @@ class _IconBox extends StatelessWidget {
         borderRadius: AppRadius.borderSm,
       ),
       child: Icon(icon, color: color, size: 28),
+    );
+  }
+}
+
+class _AppSettingsCard extends ConsumerStatefulWidget {
+  const _AppSettingsCard();
+
+  @override
+  ConsumerState<_AppSettingsCard> createState() => _AppSettingsCardState();
+}
+
+class _AppSettingsCardState extends ConsumerState<_AppSettingsCard> {
+  bool _biometricAvailable = false;
+  bool _biometricEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBiometricState();
+  }
+
+  Future<void> _loadBiometricState() async {
+    final available = await BiometricService.isAvailable();
+    final enabled = await BiometricService.isEnabled();
+    if (mounted) setState(() { _biometricAvailable = available; _biometricEnabled = enabled; });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final themeMode = ref.watch(themeProvider);
+    final isDark = themeMode == ThemeMode.dark;
+
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        children: [
+          // Dark Mode toggle
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.accent.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.dark_mode_outlined, color: AppColors.accent, size: 22),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Modo Oscuro', style: AppTextStyles.bodyMedium),
+                      Text(isDark ? 'Activado' : 'Desactivado', style: AppTextStyles.label.copyWith(color: AppColors.textSecondaryLight)),
+                    ],
+                  ),
+                ],
+              ),
+              Switch.adaptive(
+                value: isDark,
+                activeColor: AppColors.accent,
+                onChanged: (_) => ref.read(themeProvider.notifier).toggle(),
+              ),
+            ],
+          ),
+
+          if (_biometricAvailable) ...[
+            const Divider(height: AppSpacing.lg, color: AppColors.borderLight),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.fingerprint, color: AppColors.success, size: 22),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Bloqueo Biométrico', style: AppTextStyles.bodyMedium),
+                        Text(_biometricEnabled ? 'Activo - Huella/Rostro' : 'Desactivado', style: AppTextStyles.label.copyWith(color: AppColors.textSecondaryLight)),
+                      ],
+                    ),
+                  ],
+                ),
+                Switch.adaptive(
+                  value: _biometricEnabled,
+                  activeColor: AppColors.success,
+                  onChanged: (val) async {
+                    if (val) {
+                      // Verify first before enabling
+                      final ok = await BiometricService.authenticate();
+                      if (ok) {
+                        await BiometricService.setEnabled(true);
+                        setState(() => _biometricEnabled = true);
+                        if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('✅ Bloqueo biométrico activado'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating),
+                        );
+                      }
+                    } else {
+                      await BiometricService.setEnabled(false);
+                      setState(() => _biometricEnabled = false);
+                    }
+                  },
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

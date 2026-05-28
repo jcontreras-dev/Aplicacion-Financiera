@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:finance_app/core/design_system/app_colors.dart';
+import 'package:finance_app/core/providers/theme_provider.dart';
 import 'package:finance_app/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:finance_app/features/transactions/presentation/transaction_history_screen.dart';
 import 'package:finance_app/features/budgets/presentation/budgets_screen.dart';
 import 'package:finance_app/features/categories/presentation/categories_screen.dart';
 import 'package:finance_app/features/export_import/presentation/backup_screen.dart';
+import 'package:finance_app/features/savings/presentation/savings_goals_screen.dart';
 
 class BottomNavNotifier extends Notifier<int> {
   @override
@@ -35,6 +37,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     DashboardScreen(),
     TransactionHistoryScreen(),
     BudgetsScreen(),
+    SavingsGoalsScreen(),
     CategoriesScreen(),
     BackupScreen(),
   ];
@@ -74,6 +77,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
             BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), activeIcon: Icon(Icons.dashboard), label: 'Inicio'),
             BottomNavigationBarItem(icon: Icon(Icons.list_alt), activeIcon: Icon(Icons.list_alt_rounded), label: 'Historial'),
             BottomNavigationBarItem(icon: Icon(Icons.pie_chart_outline), activeIcon: Icon(Icons.pie_chart), label: 'Presupuesto'),
+            BottomNavigationBarItem(icon: Icon(Icons.savings_outlined), activeIcon: Icon(Icons.savings), label: 'Metas'),
             BottomNavigationBarItem(icon: Icon(Icons.category_outlined), activeIcon: Icon(Icons.category), label: 'Categorías'),
             BottomNavigationBarItem(icon: Icon(Icons.security_outlined), activeIcon: Icon(Icons.security), label: 'Seguridad'),
           ],

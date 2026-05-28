@@ -57,6 +57,9 @@ dependencies:
   googleapis: ^16.0.0
   googleapis_auth: ^2.0.0
   shimmer: ^3.0.0
+  local_auth: ^3.0.1
+  shared_preferences: ^2.5.5
+  flutter_local_notifications: ^21.0.0
 
 dev_dependencies:
   flutter_test:
