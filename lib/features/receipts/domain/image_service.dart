@@ -22,6 +22,16 @@ class ImageService {
     final savedImagePath = p.join(directory.path, fileName);
 
     final savedImage = await File(image.path).copy(savedImagePath);
-    return savedImage.path;
+    return savedImagePath;
+  }
+
+  /// Recupera la ruta real de una imagen guardada. 
+  /// Esto es crucial en iOS y Android porque el directorio raíz de la app
+  /// cambia cada vez que la app se actualiza o se reinstala, 
+  /// por lo que las rutas absolutas guardadas en SQLite pueden romperse.
+  static Future<String> getResolvedPath(String savedPath) async {
+    final fileName = p.basename(savedPath);
+    final directory = await getApplicationDocumentsDirectory();
+    return p.join(directory.path, fileName);
   }
 }

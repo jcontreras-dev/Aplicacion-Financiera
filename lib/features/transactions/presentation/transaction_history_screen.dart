@@ -11,6 +11,7 @@ import 'package:finance_app/core/design_system/app_spacing.dart';
 import 'package:finance_app/core/design_system/app_radius.dart';
 import 'package:finance_app/core/design_system/app_text_styles.dart';
 import 'package:finance_app/core/design_system/app_empty_state.dart';
+import 'package:finance_app/features/receipts/domain/image_service.dart';
 import 'package:shimmer/shimmer.dart';
 
 class TransactionHistoryScreen extends ConsumerStatefulWidget {
@@ -166,9 +167,10 @@ class _TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScr
                         ref.read(transactionsProvider.notifier).removeTransaction(tx.id);
                       },
                       child: InkWell(
-                        onTap: () {
+                        onTap: () async {
                            if (tx.receiptImagePath != null) {
-                              _showReceiptModal(context, tx.receiptImagePath!);
+                              final realPath = await ImageService.getResolvedPath(tx.receiptImagePath!);
+                              if (context.mounted) _showReceiptModal(context, realPath);
                            }
                         },
                         child: Padding(
