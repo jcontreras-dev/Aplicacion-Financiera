@@ -9,6 +9,7 @@ import 'package:finance_app/features/budgets/presentation/budgets_screen.dart';
 import 'package:finance_app/features/categories/presentation/categories_screen.dart';
 import 'package:finance_app/features/export_import/presentation/backup_screen.dart';
 import 'package:finance_app/features/savings/presentation/savings_goals_screen.dart';
+import 'package:finance_app/features/fixed_expenses/domain/fixed_expenses_screen.dart';
 
 class BottomNavNotifier extends Notifier<int> {
   @override
@@ -37,6 +38,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     DashboardScreen(),
     TransactionHistoryScreen(),
     BudgetsScreen(),
+    FixedExpensesScreen(),
     SavingsGoalsScreen(),
     CategoriesScreen(),
     BackupScreen(),
@@ -77,6 +79,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
             BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), activeIcon: Icon(Icons.dashboard), label: 'Inicio'),
             BottomNavigationBarItem(icon: Icon(Icons.list_alt), activeIcon: Icon(Icons.list_alt_rounded), label: 'Historial'),
             BottomNavigationBarItem(icon: Icon(Icons.pie_chart_outline), activeIcon: Icon(Icons.pie_chart), label: 'Presupuesto'),
+            BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), activeIcon: Icon(Icons.receipt_long), label: 'G. Fijos'),
             BottomNavigationBarItem(icon: Icon(Icons.savings_outlined), activeIcon: Icon(Icons.savings), label: 'Metas'),
             BottomNavigationBarItem(icon: Icon(Icons.category_outlined), activeIcon: Icon(Icons.category), label: 'Categorías'),
             BottomNavigationBarItem(icon: Icon(Icons.security_outlined), activeIcon: Icon(Icons.security), label: 'Seguridad'),

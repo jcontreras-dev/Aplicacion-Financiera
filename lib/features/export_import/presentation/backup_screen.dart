@@ -12,6 +12,7 @@ import 'package:finance_app/core/design_system/app_button.dart';
 import 'package:finance_app/core/database/database_helper.dart';
 import 'package:finance_app/core/providers/theme_provider.dart';
 import 'package:finance_app/core/services/biometric_service.dart';
+import 'package:finance_app/core/services/notification_service.dart';
 import 'package:finance_app/features/export_import/domain/export_service.dart';
 import 'package:finance_app/features/transactions/domain/transaction_provider.dart';
 import 'package:finance_app/features/transactions/domain/transaction.dart';
@@ -165,6 +166,34 @@ class BackupScreen extends ConsumerWidget {
             const SizedBox(height: AppSpacing.sm),
             const _AppSettingsCard(),
             const SizedBox(height: AppSpacing.xl),
+
+            // ─── PROBAR NOTIFICACIONES ─────────────────────────────────
+            Text('Notificaciones', style: AppTextStyles.h3),
+            const SizedBox(height: AppSpacing.sm),
+            _ActionCard(
+              title: 'Probar Notificación',
+              subtitle: 'Envía una notificación de prueba ahora mismo a tu celular.',
+              icon: Icons.notifications_active_outlined,
+              color: AppColors.accent,
+              isFullWidth: true,
+              onTap: () async {
+                await NotificationService.showInstantNotification(
+                  '⚠️ Recordatorio de Gasto Fijo',
+                  'Mañana vence tu pago de Arriendo - \$500,000',
+                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('✅ Notificación enviada. Revisa la barra de notificaciones.'),
+                      backgroundColor: AppColors.accent,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              },
+            ),
+            const SizedBox(height: AppSpacing.xl),
+
             Text('Reportes y Exportación', style: AppTextStyles.h3),
             const SizedBox(height: AppSpacing.sm),
             _ActionCard(
