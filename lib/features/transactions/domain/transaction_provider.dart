@@ -45,3 +45,18 @@ class TransactionsNotifier extends AsyncNotifier<List<AppTransaction>> {
   }
 }
 
+final selectedMonthProvider = NotifierProvider<SelectedMonthNotifier, DateTime>(() {
+  return SelectedMonthNotifier();
+});
+
+class SelectedMonthNotifier extends Notifier<DateTime> {
+  @override
+  DateTime build() {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month);
+  }
+
+  void update(DateTime Function(DateTime) cb) {
+    state = cb(state);
+  }
+}

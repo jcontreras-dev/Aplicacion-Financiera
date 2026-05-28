@@ -60,19 +60,20 @@ class ExportService {
 
   static pw.Widget _buildSummaryBox(String title, double amount, PdfColor color) {
     return pw.Container(
-      width: 140,
-      padding: const pw.EdgeInsets.all(12),
+      width: 150,
+      padding: const pw.EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: pw.BoxDecoration(
-        color: color.shade(.1),
-        border: pw.Border.all(color: color, width: 2),
-        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+        color: PdfColors.white,
+        border: pw.Border.all(color: PdfColors.grey200, width: 1),
+        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
       ),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text(title, style: pw.TextStyle(color: color, fontSize: 12, fontWeight: pw.FontWeight.bold)),
-          pw.SizedBox(height: 4),
-          pw.Text('\$${amount.toStringAsFixed(2)}', style: pw.TextStyle(color: color, fontSize: 16, fontWeight: pw.FontWeight.bold)),
+          pw.Text(title.toUpperCase(), style: pw.TextStyle(color: PdfColors.grey600, fontSize: 9, fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 6),
+          pw.Text(NumberFormat.currency(symbol: '\$', decimalDigits: 2).format(amount), 
+            style: pw.TextStyle(color: color, fontSize: 16, fontWeight: pw.FontWeight.bold)),
         ]
       )
     );
@@ -82,79 +83,125 @@ class ExportService {
     final pdf = pw.Document();
     final Map<String, Category> categoryMap = {for (var c in categories) c.id: c};
     
-    final colorGreen = PdfColor.fromHex('#4CAF50');
-    final colorRed = PdfColor.fromHex('#F44336');
-    final colorBlue = PdfColor.fromHex('#2196F3');
-    final colorDark = PdfColor.fromHex('#263238');
+    final colorGreen = PdfColor.fromHex('#059669'); // Emerald 600
+    final colorRed = PdfColor.fromHex('#DC2626');   // Red 600
+    final colorBlue = PdfColor.fromHex('#0F172A');  // Slate 900 (Corporate)
+    final colorDark = PdfColor.fromHex('#0F172A');
+
+    final currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
 
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
-        build: (pw.Context context) {
+        margin: const pw.EdgeInsets.symmetric(horizontal: 40, vertical: 40),
+        header: (pw.Context context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              // HEADER BANNER
-              pw.Container(
-                padding: const pw.EdgeInsets.all(16),
-                decoration: pw.BoxDecoration(
-                  color: colorDark,
-                  borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
-                ),
-                child: pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: [
-                    pw.Text('Reporte Financiero', style: pw.TextStyle(color: PdfColors.white, fontSize: 24, fontWeight: pw.FontWeight.bold)),
-                    pw.Text(reportLabel, style: pw.TextStyle(color: PdfColors.white, fontSize: 14)),
-                  ],
-                ),
-              ),
-              pw.SizedBox(height: 20),
-              
-              // SUMMARY BOXES
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: pw.CrossAxisAlignment.end,
                 children: [
-                  _buildSummaryBox('Ingresos', income, colorGreen),
-                  _buildSummaryBox('Gastos', expense, colorRed),
-                  _buildSummaryBox('Saldo Disponible', balance, colorBlue),
-                ]
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text('INFORME EJECUTIVO', style: pw.TextStyle(color: colorDark, fontSize: 22, fontWeight: pw.FontWeight.bold, letterSpacing: 1.2)),
+                      pw.SizedBox(height: 4),
+                      pw.Text('Resumen de Movimientos Financieros', style: pw.TextStyle(color: PdfColors.grey600, fontSize: 10)),
+                    ],
+                  ),
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      pw.Text('PERIODO', style: pw.TextStyle(color: PdfColors.grey500, fontSize: 8, fontWeight: pw.FontWeight.bold)),
+                      pw.SizedBox(height: 2),
+                      pw.Text(reportLabel, style: pw.TextStyle(color: colorDark, fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                    ]
+                  )
+                ],
               ),
-              pw.SizedBox(height: 30),
-              
-              // TRANSACTIONS TITLE
-              pw.Text('Detalle de Transacciones', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.grey800)),
-              pw.SizedBox(height: 10),
-              
+              pw.SizedBox(height: 15),
+              pw.Divider(color: PdfColors.grey300, thickness: 1),
+              pw.SizedBox(height: 20),
+            ],
+          );
+        },
+        footer: (pw.Context context) {
+          return pw.Container(
+            alignment: pw.Alignment.centerRight,
+            margin: const pw.EdgeInsets.only(top: 20),
+            padding: const pw.EdgeInsets.only(top: 10),
+            decoration: const pw.BoxDecoration(border: pw.Border(top: pw.BorderSide(color: PdfColors.grey200))),
+            child: pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text('Generado por Sistema Contable Enterprise', style: const pw.TextStyle(color: PdfColors.grey500, fontSize: 8)),
+                pw.Text('Página ${context.pageNumber} de ${context.pagesCount}', style: const pw.TextStyle(color: PdfColors.grey500, fontSize: 8)),
+              ]
+            )
+          );
+        },
+        build: (pw.Context context) {
+          return [
+            // SUMMARY BOXES
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                _buildSummaryBox('Total Ingresos', income, colorGreen),
+                _buildSummaryBox('Total Gastos', expense, colorRed),
+                _buildSummaryBox('Balance Neto', balance, colorBlue),
+              ]
+            ),
+            pw.SizedBox(height: 40),
+            
+            // TRANSACTIONS TITLE
+            pw.Text('REGISTRO DE OPERACIONES', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.grey600, letterSpacing: 1)),
+            pw.SizedBox(height: 10),
+            
+            if (transactions.isEmpty)
+              pw.Container(
+                alignment: pw.Alignment.center,
+                padding: const pw.EdgeInsets.all(40),
+                decoration: pw.BoxDecoration(
+                  color: PdfColors.grey100,
+                  borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+                ),
+                child: pw.Text('No se encontraron operaciones en el periodo seleccionado.', 
+                  style: const pw.TextStyle(color: PdfColors.grey600, fontSize: 12)),
+              )
+            else
               // TRANSACTIONS TABLE
               pw.TableHelper.fromTextArray(
                 context: context,
-                border: null,
-                headerStyle: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold),
-                headerDecoration: pw.BoxDecoration(color: colorDark),
-                rowDecoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey300))),
+                border: const pw.TableBorder(
+                  horizontalInside: pw.BorderSide(color: PdfColors.grey200, width: 0.5),
+                  bottom: pw.BorderSide(color: PdfColors.grey300, width: 1),
+                ),
+                headerStyle: pw.TextStyle(color: PdfColors.grey800, fontWeight: pw.FontWeight.bold, fontSize: 9),
+                headerDecoration: const pw.BoxDecoration(
+                  color: PdfColors.grey100,
+                ),
+                cellStyle: const pw.TextStyle(fontSize: 9, color: PdfColors.grey800),
+                cellPadding: const pw.EdgeInsets.symmetric(vertical: 10, horizontal: 8),
                 cellAlignments: {
                   0: pw.Alignment.centerLeft,
-                  1: pw.Alignment.centerRight,
+                  1: pw.Alignment.centerLeft,
                   2: pw.Alignment.centerLeft,
-                  3: pw.Alignment.center,
-                  4: pw.Alignment.centerLeft,
+                  3: pw.Alignment.centerRight,
                 },
-                headers: ["Fecha", "Monto", "Categoría", "Tipo", "Descripción"],
+                headers: ["Fecha", "Categoría", "Descripción", "Monto"],
                 data: transactions.map((tx) {
                   final cat = categoryMap[tx.categoryId]?.name ?? '';
+                  final amountStr = currencyFormat.format(tx.amount);
                   return [
-                    DateFormat('yyyy-MM-dd').format(tx.date),
-                    '\$ ${tx.amount.toStringAsFixed(2)}',
+                    DateFormat('dd/MM/yyyy').format(tx.date),
                     cat,
-                    tx.isIncome ? 'Ingreso' : 'Gasto',
                     tx.description,
+                    '${tx.isIncome ? "" : "-"}$amountStr',
                   ];
                 }).toList(),
               ),
-            ],
-          );
+          ];
         },
       ),
     );
@@ -310,6 +357,47 @@ class ExportService {
       return true;
     } catch (e) {
       throw Exception('Error recuperando de Google Drive: $e');
+    }
+  }
+
+  static Future<List<drive.File>> listAvailableBackups() async {
+    try {
+      final driveApi = await _getDriveApi();
+      if (driveApi == null) throw Exception('Autenticación cancelada');
+
+      final query = "(name = 'finance_app.db' or name contains 'finance_app_backup_') and 'appDataFolder' in parents and trashed = false";
+      final fileList = await driveApi.files.list(q: query, spaces: 'appDataFolder', orderBy: 'modifiedTime desc');
+      
+      return fileList.files ?? [];
+    } catch (e) {
+      throw Exception('Error obteniendo lista de respaldos: $e');
+    }
+  }
+
+  static Future<bool> importSpecificBackup(String fileId) async {
+    try {
+      await BackupSafetyService.createLocalBackup();
+
+      final driveApi = await _getDriveApi();
+      if (driveApi == null) throw Exception('Autenticación cancelada');
+
+      final dbPath = await getDatabasesPath();
+      final path = join(dbPath, 'finance_app.db');
+      final targetFile = File(path);
+
+      final drive.Media fullMedia = await driveApi.files.get(
+        fileId, 
+        downloadOptions: drive.DownloadOptions.fullMedia
+      ) as drive.Media;
+
+      final fileStream = targetFile.openWrite();
+      await fullMedia.stream.pipe(fileStream);
+      await fileStream.flush();
+      await fileStream.close();
+
+      return true;
+    } catch (e) {
+      throw Exception('Error recuperando respaldo específico: $e');
     }
   }
 }

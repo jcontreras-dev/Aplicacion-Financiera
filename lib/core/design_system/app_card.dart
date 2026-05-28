@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:finance_app/core/design_system/app_radius.dart';
 import 'package:finance_app/core/design_system/app_spacing.dart';
+import 'package:finance_app/core/design_system/app_colors.dart';
 
 class AppCard extends StatelessWidget {
   final Widget child;
@@ -29,7 +30,7 @@ class AppCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: AppRadius.borderLg,
         side: BorderSide(
-          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+          color: AppColors.borderLight, // Rigid border
           width: 1,
         ),
       ),

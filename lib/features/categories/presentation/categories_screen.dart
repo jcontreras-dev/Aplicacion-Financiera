@@ -44,6 +44,13 @@ class CategoriesScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Categorías', style: AppTextStyles.h2),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add_circle, color: AppColors.secondary, size: 28),
+            onPressed: () => _showCategoryForm(context, ref),
+          ),
+          const SizedBox(width: AppSpacing.md),
+        ],
       ),
       body: categoriesAsync.when(
         data: (categories) {
@@ -99,14 +106,19 @@ class CategoriesScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showCategoryForm(context, ref),
-        label: const Text('Nueva', style: TextStyle(fontWeight: FontWeight.bold)),
-        icon: const Icon(Icons.add),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        error: (err, stack) => const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.cloud_off, size: 48, color: Colors.grey),
+                SizedBox(height: 16),
+                Text('No se pudo cargar las categorías. Por favor, intenta de nuevo.', textAlign: TextAlign.center),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -143,14 +155,27 @@ class _CategoryTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(category.name, style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.bold)),
+                  Flexible(
+                    child: Text(category.name, style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  ),
                   Text(category.isIncome ? 'Categoría de Ingreso' : 'Categoría de Gasto', style: AppTextStyles.bodySmall.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                 ],
               ),
             ),
-            IconButton(
-              icon: const Icon(Icons.edit, color: AppColors.secondary),
-              onPressed: onEdit,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit, color: AppColors.secondary),
+                  onPressed: onEdit,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, color: AppColors.danger),
+                  onPressed: () {
+                    ref.read(categoriesProvider.notifier).deleteCategory(category.id);
+                  },
+                ),
+              ],
             ),
           ],
         ),
@@ -264,12 +289,9 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
               TextField(
                 controller: _nameController,
                 autofocus: widget.category == null,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Nombre de la Categoría',
-                  border: OutlineInputBorder(borderRadius: AppRadius.borderMd),
-                  prefixIcon: const Icon(Icons.label),
-                  filled: true,
-                  fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                  prefixIcon: Icon(Icons.label),
                 ),
                 style: AppTextStyles.bodyLarge,
               ),

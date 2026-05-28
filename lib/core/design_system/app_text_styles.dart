@@ -5,7 +5,7 @@ class AppTextStyles {
 
   static const TextStyle h1 = TextStyle(
     fontSize: 32,
-    fontWeight: FontWeight.bold,
+    fontWeight: FontWeight.w800, // Extrabold for main metrics
     letterSpacing: -1.0,
   );
 
@@ -16,28 +16,30 @@ class AppTextStyles {
   );
 
   static const TextStyle h3 = TextStyle(
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: FontWeight.w600,
+    letterSpacing: -0.2,
   );
 
   static const TextStyle bodyLarge = TextStyle(
     fontSize: 16,
-    fontWeight: FontWeight.normal,
+    fontWeight: FontWeight.w500, // Medium for better readability
   );
 
   static const TextStyle bodyMedium = TextStyle(
     fontSize: 14,
-    fontWeight: FontWeight.normal,
+    fontWeight: FontWeight.w400,
   );
 
   static const TextStyle bodySmall = TextStyle(
-    fontSize: 12,
-    fontWeight: FontWeight.normal,
+    fontSize: 13, // Slightly larger than 12 for better readability
+    fontWeight: FontWeight.w400,
   );
   
   static const TextStyle label = TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.w600,
     letterSpacing: 0.5,
+    textBaseline: TextBaseline.alphabetic,
   );
 }

@@ -36,7 +36,14 @@ class BudgetsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gestión de Presupuestos', style: AppTextStyles.h2),
+        title: const Text('Presupuestos', style: AppTextStyles.h2),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add_circle, color: AppColors.secondary, size: 28),
+            onPressed: () => _showBudgetForm(context, ref),
+          ),
+          const SizedBox(width: AppSpacing.md),
+        ],
       ),
       body: budgetsAsync.when(
         data: (budgets) {
@@ -86,7 +93,7 @@ class BudgetsScreen extends ConsumerWidget {
                     final remaining = budget.amountLimit - spent;
 
                     return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+                      padding: const EdgeInsets.only(left: AppSpacing.md, right: AppSpacing.md, top: AppSpacing.sm, bottom: AppSpacing.sm),
                       child: AppCard(
                         padding: const EdgeInsets.all(AppSpacing.md),
                         child: Column(
@@ -95,7 +102,9 @@ class BudgetsScreen extends ConsumerWidget {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(cat.name, style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.bold)),
+                                Flexible(
+                                  child: Text(cat.name, style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                ),
                                 Row(
                                   children: [
                                     IconButton(
@@ -151,14 +160,19 @@ class BudgetsScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showBudgetForm(context, ref),
-        label: const Text('Nuevo Presupuesto', style: TextStyle(fontWeight: FontWeight.bold)),
-        icon: const Icon(Icons.add),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        error: (err, stack) => const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.cloud_off, size: 48, color: Colors.grey),
+                SizedBox(height: 16),
+                Text('No se pudo cargar los presupuestos. Por favor, intenta de nuevo.', textAlign: TextAlign.center),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -235,12 +249,9 @@ class _BudgetFormSheetState extends ConsumerState<_BudgetFormSheet> {
 
                 return DropdownButtonFormField<String>(
                   initialValue: safeValue,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Categoría',
-                    border: OutlineInputBorder(borderRadius: AppRadius.borderMd),
-                    prefixIcon: const Icon(Icons.category),
-                    filled: true,
-                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                    prefixIcon: Icon(Icons.category),
                   ),
                   items: expenseCats.map((c) => DropdownMenuItem(
                     value: c.id,
@@ -264,12 +275,9 @@ class _BudgetFormSheetState extends ConsumerState<_BudgetFormSheet> {
                   decimalDigits: 2,
                 )
               ],
-              decoration: InputDecoration(
-                labelText: 'Monto Límite (\$)',
-                border: OutlineInputBorder(borderRadius: AppRadius.borderMd),
-                prefixIcon: const Icon(Icons.attach_money),
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+              decoration: const InputDecoration(
+                labelText: 'Límite Mensual (\$)',
+                prefixIcon: Icon(Icons.attach_money),
               ),
               style: AppTextStyles.h2,
             ),

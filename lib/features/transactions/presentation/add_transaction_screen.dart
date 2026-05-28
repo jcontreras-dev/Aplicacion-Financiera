@@ -262,24 +262,18 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                       decimalDigits: 2,
                     )
                   ],
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Monto (\$)',
-                    border: OutlineInputBorder(borderRadius: AppRadius.borderMd),
-                    prefixIcon: const Icon(Icons.attach_money),
-                    filled: true,
-                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                    prefixIcon: Icon(Icons.attach_money),
                   ),
                   style: AppTextStyles.h1.copyWith(color: _isIncome ? AppColors.success : AppColors.danger),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 TextField(
                   controller: _descriptionController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Descripción / Título',
-                    border: OutlineInputBorder(borderRadius: AppRadius.borderMd),
-                    prefixIcon: const Icon(Icons.description),
-                    filled: true,
-                    fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                    prefixIcon: Icon(Icons.description),
                   ),
                   onChanged: (val) {
                      final history = ref.read(transactionsProvider).value ?? [];
@@ -309,12 +303,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
                     return DropdownButtonFormField<String>(
                       initialValue: safeValue,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Categoría',
-                        border: OutlineInputBorder(borderRadius: AppRadius.borderMd),
-                        prefixIcon: const Icon(Icons.category),
-                        filled: true,
-                        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                        prefixIcon: Icon(Icons.category),
                       ),
                       items: filteredCats.map((c) => DropdownMenuItem(
                         value: c.id,
@@ -330,23 +321,19 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          const AppSectionHeader(title: 'Evidencia y Autocompletado'),
-          Row(
+          const AppSectionHeader(title: 'Comprobante de Pago'),
+          Column(
             children: [
-              Expanded(
-                child: AppPrimaryButton(
-                  text: 'Cámara (IA)',
-                  icon: Icons.camera_alt,
-                  onPressed: () => _scanReceipt(true),
-                )
+              AppPrimaryButton(
+                text: 'Escanear con cámara',
+                icon: Icons.camera_alt,
+                onPressed: () => _scanReceipt(true),
               ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: AppSecondaryButton(
-                  text: 'Galería',
-                  icon: Icons.image,
-                  onPressed: () => _scanReceipt(false),
-                )
+              const SizedBox(height: AppSpacing.sm),
+              AppSecondaryButton(
+                text: 'Subir desde galería',
+                icon: Icons.image,
+                onPressed: () => _scanReceipt(false),
               ),
             ],
           ),
@@ -388,7 +375,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           ],
           const SizedBox(height: AppSpacing.xxl),
           AppPrimaryButton(
-            text: 'Guardar Transacción',
+            text: 'Guardar',
             icon: Icons.save,
             onPressed: _saveTransaction,
             backgroundColor: _isIncome ? AppColors.success : AppColors.primary,
