@@ -4,6 +4,8 @@ import 'package:uuid/uuid.dart';
 import 'package:finance_app/features/fixed_expenses/domain/fixed_expense.dart';
 import 'package:finance_app/features/fixed_expenses/domain/fixed_expense_provider.dart';
 import 'package:finance_app/features/categories/domain/category_provider.dart';
+import 'package:finance_app/features/transactions/domain/transaction_provider.dart';
+import 'package:finance_app/features/transactions/domain/transaction.dart';
 import 'package:intl/intl.dart';
 import 'package:currency_text_input_formatter/currency_text_input_formatter.dart';
 
@@ -140,6 +142,47 @@ class FixedExpensesScreen extends ConsumerWidget {
                             ],
                           ),
                           onTap: () {
+                            final now = DateTime.now();
+                            final txId = 'FE_${expense.id}_${now.year}_${now.month}';
+                            final txs = ref.read(transactionsProvider).value ?? [];
+                            
+                            if (!isPaid) {
+                              // We are trying to mark it as paid, validate balance
+                              final income = txs.where((t) => t.isIncome).fold(0.0, (s, t) => s + t.amount);
+                              final exp = txs.where((t) => !t.isIncome).fold(0.0, (s, t) => s + t.amount);
+                              final balance = income - exp;
+                              
+                              if (balance < expense.amount) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Saldo insuficiente. Tienes \$${formatter.format(balance)} y necesitas \$${formatter.format(expense.amount)}'),
+                                    backgroundColor: Colors.red,
+                                  )
+                                );
+                                return;
+                              }
+                              
+                              // Create the transaction
+                              final newTx = AppTransaction(
+                                id: txId,
+                                amount: expense.amount,
+                                categoryId: expense.categoryId,
+                                date: now,
+                                description: 'Gasto Fijo: ${expense.name}',
+                                isIncome: false,
+                              );
+                              ref.read(transactionsProvider.notifier).addTransaction(newTx);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Gasto pagado y descontado de tu saldo.'), backgroundColor: Colors.green)
+                              );
+                            } else {
+                              // We are un-paying it, remove the transaction
+                              ref.read(transactionsProvider.notifier).removeTransaction(txId);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Pago revertido. Dinero devuelto a tu saldo.'))
+                              );
+                            }
+
                             ref.read(fixedExpensePaymentProvider.notifier)
                                 .togglePaid(expense.id, isPaid);
                           },
