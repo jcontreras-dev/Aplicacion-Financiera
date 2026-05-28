@@ -5,6 +5,7 @@ import 'package:finance_app/features/fixed_expenses/domain/fixed_expense.dart';
 import 'package:finance_app/features/fixed_expenses/domain/fixed_expense_provider.dart';
 import 'package:finance_app/features/categories/domain/category_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:currency_text_input_formatter/currency_text_input_formatter.dart';
 
 class FixedExpensesScreen extends ConsumerWidget {
   const FixedExpensesScreen({super.key});
@@ -189,9 +190,11 @@ class FixedExpensesScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
+                const SizedBox(height: 12),
                 TextField(
                   controller: amountCtrl,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [CurrencyTextInputFormatter.currency(symbol: '', decimalDigits: 0)],
                   decoration: const InputDecoration(
                     labelText: 'Monto (\$)',
                     border: OutlineInputBorder(),
@@ -244,7 +247,8 @@ class FixedExpensesScreen extends ConsumerWidget {
               ),
               onPressed: () {
                 final name = nameCtrl.text.trim();
-                final amount = double.tryParse(amountCtrl.text.trim());
+                final rawAmount = amountCtrl.text.replaceAll(',', '');
+                final amount = double.tryParse(rawAmount);
                 if (name.isEmpty || amount == null || selectedCategoryId == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Por favor completa todos los campos')),

@@ -323,6 +323,17 @@ class _TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScr
                 child: Image.file(
                   File(imagePath), 
                   fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.broken_image, size: 64, color: Colors.grey),
+                        SizedBox(height: 16),
+                        Text('El comprobante ya no existe en el dispositivo.', 
+                             style: TextStyle(color: Colors.white), textAlign: TextAlign.center),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
