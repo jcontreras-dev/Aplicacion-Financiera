@@ -45,7 +45,7 @@ class AuthGate extends ConsumerStatefulWidget {
   ConsumerState<AuthGate> createState() => _AuthGateState();
 }
 
-class _AuthGateState extends ConsumerState<AuthGate> with WidgetsBindingObserver {
+class _AuthGateState extends ConsumerState<AuthGate> {
   bool _locked = false;
   bool _biometricsEnabled = false;
   DateTime? _backgroundTime;
@@ -53,14 +53,7 @@ class _AuthGateState extends ConsumerState<AuthGate> with WidgetsBindingObserver
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     _checkBiometrics();
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
   }
 
   Future<void> _checkBiometrics() async {
@@ -74,18 +67,6 @@ class _AuthGateState extends ConsumerState<AuthGate> with WidgetsBindingObserver
     }
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (!_biometricsEnabled) return;
-    if (state == AppLifecycleState.paused) {
-      _backgroundTime = DateTime.now();
-    } else if (state == AppLifecycleState.resumed) {
-      final bg = _backgroundTime;
-      if (bg != null && DateTime.now().difference(bg).inSeconds > 60) {
-        setState(() => _locked = true);
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {

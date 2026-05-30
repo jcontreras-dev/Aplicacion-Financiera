@@ -21,6 +21,11 @@ class TransactionRepository {
     return await db.delete('transactions', where: 'id = ?', whereArgs: [id]);
   }
 
+  Future<int> updateTransaction(AppTransaction transaction) async {
+    final db = await _dbHelper.database;
+    return await db.update('transactions', transaction.toMap(), where: 'id = ?', whereArgs: [transaction.id]);
+  }
+
   Future<List<Category>> getCategories() async {
     final db = await _dbHelper.database;
     final maps = await db.query('categories');

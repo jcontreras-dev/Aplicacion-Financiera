@@ -14,6 +14,7 @@ import 'package:finance_app/features/transactions/domain/transaction.dart';
 import 'package:finance_app/features/categories/domain/category.dart';
 import 'package:finance_app/features/export_import/domain/backup_safety_service.dart';
 import 'package:intl/intl.dart';
+import 'package:archive/archive_io.dart';
 
 class GoogleAuthClient extends http.BaseClient {
   final Map<String, String> _headers;
@@ -292,27 +293,54 @@ class ExportService {
       if (driveApi == null) throw Exception('Autenticación cancelada');
 
       final dbPath = await getDatabasesPath();
-      final path = join(dbPath, 'finance_app.db');
-      final file = File(path);
+      final dbFilePath = join(dbPath, 'finance_app.db');
+      final dbFile = File(dbFilePath);
+
+      // Crear archivo ZIP temporal
+      final tempDir = await getTemporaryDirectory();
+      final zipFilePath = '${tempDir.path}/finance_app_backup.zip';
+      final encoder = ZipFileEncoder();
+      encoder.create(zipFilePath);
+      
+      // Añadir base de datos al ZIP
+      if (await dbFile.exists()) {
+        encoder.addFile(dbFile);
+      }
+
+      // Añadir carpeta de imágenes (app_flutter) al ZIP si existe
+      final appDocsDir = await getApplicationDocumentsDirectory();
+      if (await appDocsDir.exists()) {
+        final List<FileSystemEntity> files = appDocsDir.listSync();
+        for (var f in files) {
+          if (f is File && (f.path.endsWith('.jpg') || f.path.endsWith('.png'))) {
+            encoder.addFile(f);
+          }
+        }
+      }
+      encoder.close();
+
+      final zipFile = File(zipFilePath);
 
       // Buscar si el archivo principal ya existe
-      final query = "name = 'finance_app.db' and 'appDataFolder' in parents and trashed = false";
+      final query = "(name = 'finance_app_backup.zip' or name = 'finance_app.db') and 'appDataFolder' in parents and trashed = false";
       final fileList = await driveApi.files.list(q: query, spaces: 'appDataFolder');
       
-      final media = drive.Media(file.openRead(), file.lengthSync());
+      final media = drive.Media(zipFile.openRead(), zipFile.lengthSync());
 
       if (fileList.files != null && fileList.files!.isNotEmpty) {
-        // En lugar de borrar el archivo viejo, lo renombramos para mantenerlo como versión de respaldo
+        // Renombrar el archivo viejo
         final fileId = fileList.files!.first.id!;
+        final oldName = fileList.files!.first.name!;
         final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-        final backupName = 'finance_app_backup_$timestamp.db';
+        final isZip = oldName.endsWith('.zip');
+        final backupName = 'finance_app_backup_$timestamp.${isZip ? "zip" : "db"}';
         
         final driveFileUpdate = drive.File()..name = backupName;
         await driveApi.files.update(driveFileUpdate, fileId);
       }
       
-      // Subir archivo nuevo (ya sea porque no existía o porque el anterior fue renombrado)
-      final driveFileCreate = drive.File()..name = 'finance_app.db'..parents = ['appDataFolder'];
+      // Subir archivo ZIP nuevo
+      final driveFileCreate = drive.File()..name = 'finance_app_backup.zip'..parents = ['appDataFolder'];
       await driveApi.files.create(driveFileCreate, uploadMedia: media);
 
       // Limpiar versiones antiguas para mantener un máximo de 5
@@ -337,18 +365,21 @@ class ExportService {
       final driveApi = await _getDriveApi();
       if (driveApi == null) throw Exception('Autenticación cancelada');
 
-      final query = "name = 'finance_app.db' and 'appDataFolder' in parents and trashed = false";
+      final query = "(name = 'finance_app_backup.zip' or name = 'finance_app.db') and 'appDataFolder' in parents and trashed = false";
       final fileList = await driveApi.files.list(q: query, spaces: 'appDataFolder');
       
       if (fileList.files == null || fileList.files!.isEmpty) {
         throw Exception('No existe ningún respaldo en Google Drive para esta cuenta');
       }
 
+      // Dar prioridad al .zip sobre el .db viejo
+      fileList.files!.sort((a, b) => (b.name?.endsWith('.zip') ?? false) ? 1 : -1);
       final fileId = fileList.files!.first.id!;
+      final isZip = fileList.files!.first.name!.endsWith('.zip');
       
-      final dbPath = await getDatabasesPath();
-      final path = join(dbPath, 'finance_app.db');
-      final targetFile = File(path);
+      final tempDir = await getTemporaryDirectory();
+      final tempFilePath = '${tempDir.path}/downloaded_backup.${isZip ? "zip" : "db"}';
+      final targetFile = File(tempFilePath);
 
       // Usando DownloadOptions.fullMedia para descargar el contenido
       final drive.Media fullMedia = await driveApi.files.get(
@@ -361,6 +392,34 @@ class ExportService {
       await fileStream.flush();
       await fileStream.close();
 
+      final dbPath = await getDatabasesPath();
+      final appDocsDir = await getApplicationDocumentsDirectory();
+
+      if (isZip) {
+        // Extraer ZIP
+        final bytes = targetFile.readAsBytesSync();
+        final archive = ZipDecoder().decodeBytes(bytes);
+        
+        for (final file in archive) {
+          final filename = basename(file.name);
+          if (file.isFile) {
+            final data = file.content as List<int>;
+            if (filename == 'finance_app.db') {
+              File(join(dbPath, 'finance_app.db'))
+                ..createSync(recursive: true)
+                ..writeAsBytesSync(data);
+            } else if (filename.endsWith('.jpg') || filename.endsWith('.png')) {
+              File(join(appDocsDir.path, filename))
+                ..createSync(recursive: true)
+                ..writeAsBytesSync(data);
+            }
+          }
+        }
+      } else {
+        // Respaldo antiguo (.db directo)
+        await targetFile.copy(join(dbPath, 'finance_app.db'));
+      }
+
       return true;
     } catch (e) {
       throw Exception('Error recuperando de Google Drive: $e');
@@ -372,7 +431,7 @@ class ExportService {
       final driveApi = await _getDriveApi();
       if (driveApi == null) throw Exception('Autenticación cancelada');
 
-      final query = "(name = 'finance_app.db' or name contains 'finance_app_backup_') and 'appDataFolder' in parents and trashed = false";
+      final query = "(name = 'finance_app_backup.zip' or name = 'finance_app.db' or name contains 'finance_app_backup_') and 'appDataFolder' in parents and trashed = false";
       final fileList = await driveApi.files.list(q: query, spaces: 'appDataFolder', orderBy: 'modifiedTime desc');
       
       return fileList.files ?? [];
@@ -388,9 +447,12 @@ class ExportService {
       final driveApi = await _getDriveApi();
       if (driveApi == null) throw Exception('Autenticación cancelada');
 
-      final dbPath = await getDatabasesPath();
-      final path = join(dbPath, 'finance_app.db');
-      final targetFile = File(path);
+      final fileList = await driveApi.files.get(fileId) as drive.File;
+      final isZip = fileList.name != null && fileList.name!.endsWith('.zip');
+
+      final tempDir = await getTemporaryDirectory();
+      final tempFilePath = '${tempDir.path}/downloaded_specific_backup.${isZip ? "zip" : "db"}';
+      final targetFile = File(tempFilePath);
 
       final drive.Media fullMedia = await driveApi.files.get(
         fileId, 
@@ -401,6 +463,32 @@ class ExportService {
       await fullMedia.stream.pipe(fileStream);
       await fileStream.flush();
       await fileStream.close();
+
+      final dbPath = await getDatabasesPath();
+      final appDocsDir = await getApplicationDocumentsDirectory();
+
+      if (isZip) {
+        final bytes = targetFile.readAsBytesSync();
+        final archive = ZipDecoder().decodeBytes(bytes);
+        
+        for (final file in archive) {
+          final filename = basename(file.name);
+          if (file.isFile) {
+            final data = file.content as List<int>;
+            if (filename == 'finance_app.db') {
+              File(join(dbPath, 'finance_app.db'))
+                ..createSync(recursive: true)
+                ..writeAsBytesSync(data);
+            } else if (filename.endsWith('.jpg') || filename.endsWith('.png')) {
+              File(join(appDocsDir.path, filename))
+                ..createSync(recursive: true)
+                ..writeAsBytesSync(data);
+            }
+          }
+        }
+      } else {
+        await targetFile.copy(join(dbPath, 'finance_app.db'));
+      }
 
       return true;
     } catch (e) {

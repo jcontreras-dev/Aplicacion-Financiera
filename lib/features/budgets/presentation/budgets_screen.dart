@@ -87,8 +87,9 @@ class BudgetsScreen extends ConsumerWidget {
                     final percent = (budget.amountLimit > 0) ? (spent / budget.amountLimit).clamp(0.0, 1.0) : 1.0;
                     
                     Color progressColor = AppColors.success;
-                    if (percent > 0.85) progressColor = AppColors.danger;
-                    else if (percent > 0.5) progressColor = AppColors.warning;
+                    if (percent > 0.85) {
+                      progressColor = AppColors.danger;
+                    } else if (percent > 0.5) progressColor = AppColors.warning;
 
                     final remaining = budget.amountLimit - spent;
 

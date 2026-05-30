@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:finance_app/features/transactions/domain/transaction_provider.dart';
 import 'package:finance_app/features/categories/domain/category_provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:finance_app/features/categories/domain/category.dart';
 import 'package:intl/intl.dart';
 
@@ -156,15 +157,30 @@ class _TransactionHistoryScreenState extends ConsumerState<TransactionHistoryScr
                     final cat = cats.firstWhere((c) => c.id == tx.categoryId, orElse: () => Category(id: '', name: 'Otros', icon: 'money', color: '0xFF9E9E9E', isIncome: false));
                     return Dismissible(
                       key: Key(tx.id),
-                      direction: DismissDirection.endToStart,
+                      direction: DismissDirection.horizontal,
                       background: Container(
+                        alignment: Alignment.centerLeft,
+                        padding: const EdgeInsets.only(left: AppSpacing.md),
+                        color: AppColors.primary,
+                        child: const Icon(Icons.edit, color: Colors.white),
+                      ),
+                      secondaryBackground: Container(
                         alignment: Alignment.centerRight,
                         padding: const EdgeInsets.only(right: AppSpacing.md),
                         color: AppColors.danger,
                         child: const Icon(Icons.delete, color: Colors.white),
                       ),
+                      confirmDismiss: (direction) async {
+                        if (direction == DismissDirection.startToEnd) {
+                          context.push('/add', extra: tx);
+                          return false; // No eliminar, solo editar
+                        }
+                        return true; // Eliminar
+                      },
                       onDismissed: (direction) {
-                        ref.read(transactionsProvider.notifier).removeTransaction(tx.id);
+                        if (direction == DismissDirection.endToStart) {
+                           ref.read(transactionsProvider.notifier).removeTransaction(tx.id);
+                        }
                       },
                       child: InkWell(
                         onTap: () async {

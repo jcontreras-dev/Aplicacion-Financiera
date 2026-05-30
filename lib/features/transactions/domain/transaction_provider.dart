@@ -25,7 +25,6 @@ class TransactionsNotifier extends AsyncNotifier<List<AppTransaction>> {
   }
 
   Future<void> addTransaction(AppTransaction transaction) async {
-    state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       await _repository.insertTransaction(transaction);
       final txs = await _fetchTransactions();
@@ -35,9 +34,18 @@ class TransactionsNotifier extends AsyncNotifier<List<AppTransaction>> {
   }
 
   Future<void> removeTransaction(String id) async {
-    state = const AsyncValue.loading();
+    // Evitar state = const AsyncValue.loading() para no borrar la UI (pantalla en blanco)
     state = await AsyncValue.guard(() async {
       await _repository.deleteTransaction(id);
+      final txs = await _fetchTransactions();
+      ExportService.createAutoJsonBackup(txs);
+      return txs;
+    });
+  }
+
+  Future<void> updateTransaction(AppTransaction transaction) async {
+    state = await AsyncValue.guard(() async {
+      await _repository.updateTransaction(transaction);
       final txs = await _fetchTransactions();
       ExportService.createAutoJsonBackup(txs);
       return txs;

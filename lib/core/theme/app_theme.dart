@@ -78,7 +78,6 @@ class AppTheme {
       cardColor: AppColors.surfaceDark,
       dividerColor: AppColors.borderDark,
       iconTheme: const IconThemeData(color: AppColors.textSecondaryDark),
-      dialogBackgroundColor: AppColors.surfaceDark,
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.surfaceDark,
         selectedItemColor: AppColors.secondary,
@@ -102,7 +101,7 @@ class AppTheme {
       listTileTheme: const ListTileThemeData(
         textColor: AppColors.textPrimaryDark,
         iconColor: AppColors.textSecondaryDark,
-      ),
+      ), dialogTheme: DialogThemeData(backgroundColor: AppColors.surfaceDark),
     );
   }
 }

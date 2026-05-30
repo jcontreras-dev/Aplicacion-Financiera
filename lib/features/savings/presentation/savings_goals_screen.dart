@@ -123,7 +123,7 @@ class SavingsGoalsScreen extends ConsumerWidget {
           : ListView.separated(
               padding: const EdgeInsets.all(AppSpacing.md),
               itemCount: goals.length,
-              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
+              separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
               itemBuilder: (context, index) {
                 final goal = goals[index];
                 return _GoalCard(goal: goal, formatter: formatter, ref: ref);

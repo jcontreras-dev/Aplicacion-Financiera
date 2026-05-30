@@ -119,7 +119,11 @@ class BackupScreen extends ConsumerWidget {
     double tIncome = 0;
     double tExpense = 0;
     for (var t in filtered) {
-      if (t.isIncome) tIncome += t.amount; else tExpense += t.amount;
+      if (t.isIncome) {
+        tIncome += t.amount;
+      } else {
+        tExpense += t.amount;
+      }
     }
     final balance = tIncome - tExpense;
 
@@ -488,7 +492,7 @@ class _AppSettingsCardState extends ConsumerState<_AppSettingsCard> {
               ),
               Switch.adaptive(
                 value: isDark,
-                activeColor: AppColors.accent,
+                activeTrackColor: AppColors.accent,
                 onChanged: (_) => ref.read(themeProvider.notifier).toggle(),
               ),
             ],
@@ -521,7 +525,7 @@ class _AppSettingsCardState extends ConsumerState<_AppSettingsCard> {
                 ),
                 Switch.adaptive(
                   value: _biometricEnabled,
-                  activeColor: AppColors.success,
+                  activeTrackColor: AppColors.success,
                   onChanged: (val) async {
                     if (val) {
                       // Verify first before enabling
@@ -529,7 +533,8 @@ class _AppSettingsCardState extends ConsumerState<_AppSettingsCard> {
                       if (ok) {
                         await BiometricService.setEnabled(true);
                         setState(() => _biometricEnabled = true);
-                        if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('✅ Bloqueo biométrico activado'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating),
                         );
                       }

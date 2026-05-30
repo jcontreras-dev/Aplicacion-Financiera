@@ -130,7 +130,7 @@ class OcrService {
     if (lastSeparator != -1 && (clean.length - lastSeparator <= 3)) {
       String integers = clean.substring(0, lastSeparator).replaceAll(RegExp(r'[.,]'), '');
       String decimals = clean.substring(lastSeparator + 1);
-      return double.tryParse(integers + "." + decimals) ?? 0.0;
+      return double.tryParse("$integers.$decimals") ?? 0.0;
     } else {
       String integers = clean.replaceAll(RegExp(r'[.,]'), '');
       return double.tryParse(integers) ?? 0.0;

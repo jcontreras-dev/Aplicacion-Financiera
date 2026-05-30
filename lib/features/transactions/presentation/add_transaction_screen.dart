@@ -23,7 +23,8 @@ import 'package:finance_app/core/design_system/app_section_header.dart';
 
 class AddTransactionScreen extends ConsumerStatefulWidget {
   final bool autoOpenOcr;
-  const AddTransactionScreen({super.key, this.autoOpenOcr = false});
+  final AppTransaction? transactionToEdit;
+  const AddTransactionScreen({super.key, this.autoOpenOcr = false, this.transactionToEdit});
 
   @override
   ConsumerState<AddTransactionScreen> createState() => _AddTransactionScreenState();
@@ -43,7 +44,18 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.autoOpenOcr) {
+    if (widget.transactionToEdit != null) {
+      final tx = widget.transactionToEdit!;
+      _amountController.text = tx.amount.toString();
+      _descriptionController.text = tx.description;
+      _selectedCategoryId = tx.categoryId;
+      // _selectedDate cannot be changed easily without making it non-final, but we ignore for simple edit
+      _imagePath = tx.receiptImagePath;
+      _ocrText = tx.ocrRawText;
+      _isIncome = tx.isIncome;
+    }
+    
+    if (widget.autoOpenOcr && widget.transactionToEdit == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scanReceipt(true);
       });
@@ -131,8 +143,11 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
       final txs = ref.read(transactionsProvider).value ?? [];
       double balance = 0;
       for (var t in txs) {
-        if (t.isIncome) balance += t.amount;
-        else balance -= t.amount;
+        if (t.isIncome) {
+          balance += t.amount;
+        } else {
+          balance -= t.amount;
+        }
       }
       if (amount > balance) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -164,17 +179,22 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     }
 
     final tx = AppTransaction(
-      id: const Uuid().v4(),
+      id: widget.transactionToEdit?.id ?? const Uuid().v4(),
       amount: amount,
       categoryId: _selectedCategoryId!,
-      date: _selectedDate,
+      date: widget.transactionToEdit?.date ?? _selectedDate,
       description: _descriptionController.text.isEmpty ? 'Sin descripción' : _descriptionController.text,
       receiptImagePath: _imagePath,
       ocrRawText: _ocrText,
       isIncome: _isIncome,
     );
 
-    ref.read(transactionsProvider.notifier).addTransaction(tx);
+    if (widget.transactionToEdit != null) {
+      ref.read(transactionsProvider.notifier).updateTransaction(tx);
+    } else {
+      ref.read(transactionsProvider.notifier).addTransaction(tx);
+    }
+    
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: const Row(children: [Icon(Icons.check_circle, color: Colors.white), SizedBox(width: AppSpacing.sm), Text('Guardado Exitoso')]),
       backgroundColor: AppColors.success,
@@ -191,7 +211,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     final categoriesAsync = ref.watch(categoriesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Nuevo Registro', style: AppTextStyles.h2)),
+      appBar: AppBar(title: Text(widget.transactionToEdit != null ? 'Editar Registro' : 'Nuevo Registro', style: AppTextStyles.h2)),
       body: _isOcrProcessing 
         ? const Center(child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -355,7 +375,22 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                     ),
                     const SizedBox(height: AppSpacing.md),
                   ],
-                  Text('Recibo Físico', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Recibo Físico', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: AppColors.danger),
+                        onPressed: () {
+                          setState(() {
+                            _imagePath = null;
+                            _ocrText = null;
+                          });
+                        },
+                        tooltip: 'Eliminar comprobante',
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: AppSpacing.xs),
                   Container(
                     height: 200,

@@ -1,6 +1,8 @@
 name: Build iOS IPA (Unsigned)
 
 on:
+  push:
+    branches: [ "feature/biometrics-and-darkmode", "main", "master" ]
   workflow_dispatch: # Permite ejecutarlo manualmente desde GitHub
 
 jobs:

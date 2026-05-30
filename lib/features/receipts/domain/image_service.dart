@@ -21,7 +21,7 @@ class ImageService {
     final fileName = 'receipt_${DateTime.now().millisecondsSinceEpoch}${p.extension(image.path)}';
     final savedImagePath = p.join(directory.path, fileName);
 
-    final savedImage = await File(image.path).copy(savedImagePath);
+    await File(image.path).copy(savedImagePath);
     return savedImagePath;
   }
 

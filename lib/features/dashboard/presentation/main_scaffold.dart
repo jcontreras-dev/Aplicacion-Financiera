@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:finance_app/core/design_system/app_colors.dart';
-import 'package:finance_app/core/providers/theme_provider.dart';
 import 'package:finance_app/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:finance_app/features/transactions/presentation/transaction_history_screen.dart';
 import 'package:finance_app/features/budgets/presentation/budgets_screen.dart';

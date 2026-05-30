@@ -7,10 +7,8 @@ import 'package:go_router/go_router.dart';
 
 import 'package:finance_app/features/dashboard/presentation/main_scaffold.dart';
 import 'package:finance_app/features/transactions/domain/transaction_provider.dart';
-import 'package:finance_app/features/transactions/domain/transaction.dart';
 import 'package:finance_app/features/categories/domain/category_provider.dart';
 import 'package:finance_app/features/categories/domain/category.dart';
-import 'package:finance_app/features/budgets/domain/budget_provider.dart';
 
 import 'package:finance_app/core/design_system/app_colors.dart';
 import 'package:finance_app/core/design_system/app_spacing.dart';
